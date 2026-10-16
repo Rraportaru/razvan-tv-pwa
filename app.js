@@ -1,6 +1,9 @@
 (() => {
 const $ = id => document.getElementById(id);
 const v = $('v'), listEl = $('list');
+const soundOverlay = $('sound-overlay');
+const IOS_DEVICE = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const ALL = window.CHANNELS.map((c, i) => ({ i, name: c[0], url: c[1], logo: c[2], country: c[3], cats: c[4] || [], hd: c[5] }));
 const LS = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 const save = (k, val) => { try { localStorage.setItem(k, JSON.stringify(val)); } catch {} };
@@ -71,8 +74,15 @@ function play(idx, auto) {
   }
   if (hls) { hls.destroy(); hls = null; }
   clearTimeout(loadTimer); loadTimer = setTimeout(fail, 15000);
-  v.muted = false;                                        // every channel starts with sound
-  v.onplaying = () => { clearTimeout(loadTimer); setStatus(''); skipCount = 0; v.muted = false; };
+  v.muted = IOS_DEVICE;
+  syncAudioUI();
+  v.onplaying = () => {
+    clearTimeout(loadTimer);
+    setStatus('');
+    skipCount = 0;
+    if (!IOS_DEVICE) v.muted = false;
+    syncAudioUI();
+  };
   const tryPlay = () => v.play().catch(() => setStatus('Apasă oriunde pentru a porni', ch.name));
   if (/\.(mp4|webm|ogg|mp3|aac)(\?|$)/i.test(ch.url) || !(window.Hls && Hls.isSupported())) {
     v.src = ch.url; v.onerror = fail; tryPlay();
@@ -356,16 +366,20 @@ function showCanaleButton() {
   document.body.classList.remove('toggle-hidden');
   if (autoHide) canaleTimer = setTimeout(() => document.body.classList.add('toggle-hidden'), 2000);
 }
-const vol = d => { v.muted = false; v.volume = Math.min(1, Math.max(0, v.volume + d)); osdMsg('Volum ' + Math.round(v.volume * 100) + '%'); };
+const vol = d => { v.muted = false; v.volume = Math.min(1, Math.max(0, v.volume + d)); syncAudioUI(); osdMsg('Volum ' + Math.round(v.volume * 100) + '%'); };
 const mute = () => {
   v.muted = !v.muted;
-  $('bMute').classList.toggle('muted', v.muted);
-  $('bMute').setAttribute('aria-label', v.muted ? 'Unmute' : 'Mute');
-  $('bMute').title = v.muted ? 'Unmute (M)' : 'Mute (M)';
+  syncAudioUI();
   osdMsg(v.muted ? 'Mute' : 'Sunet pornit');
 };
 const togglePlayback = () => v.paused ? v.play().catch(() => {}) : v.pause();
 function osdMsg(t) { $('onm').textContent = t; $('oct').textContent = ''; const o = $('osd'); o.classList.add('show'); clearTimeout(osdTimer); osdTimer = setTimeout(() => o.classList.remove('show'), 1500); }
+function syncAudioUI() {
+  $('bMute').classList.toggle('muted', v.muted);
+  $('bMute').setAttribute('aria-label', v.muted ? 'Pornește sunetul' : 'Oprește sunetul');
+  $('bMute').title = v.muted ? 'Pornește sunetul (M)' : 'Oprește sunetul (M)';
+  soundOverlay.hidden = !IOS_DEVICE || !v.muted;
+}
 function toggleFav() { const u = ALL[cur].url; favs.has(u) ? favs.delete(u) : favs.add(u); save('ctv.favs', [...favs]); buildRows(); highlight(); }
 function addCurrentToFavorites() {
   const focusedChannel = document.activeElement?.closest?.('.ch[data-i]');
@@ -463,6 +477,11 @@ document.addEventListener('pointermove', () => {
 document.addEventListener('pointerdown', () => { revealTvUi(); showCanaleButton(); });
 
 $('bNext').onclick = next; $('bPrev').onclick = back; $('bMute').onclick = mute;
+$('sound-overlay').onclick = () => {
+  v.muted = false;
+  syncAudioUI();
+  v.play().catch(() => setStatus('Apasă din nou pentru a porni sunetul', ALL[cur].name));
+};
 $('bVp').onclick = () => vol(.1); $('bVm').onclick = () => vol(-.1); $('bFs').onclick = toggleFs;
 $('bLast').onclick = () => play(prev);
 $('bRand').onclick = () => { if (view.length) play(view[Math.floor(Math.random() * view.length)].i); };
