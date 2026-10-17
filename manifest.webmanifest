@@ -1,13 +1,15 @@
 {
   "id": "./",
-  "name": "Razvan TV",
-  "short_name": "Razvan TV",
-  "description": "Televiziune online cu canale românești și ghid TV.",
+  "name": "GUgu Tv pro",
+  "short_name": "GUgu TV",
+  "description": "Canale TV românești și ghid TV într-o interfață glass pentru ecrane mari.",
   "lang": "ro",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone"],
+  "display_override": [
+    "standalone"
+  ],
   "orientation": "any",
   "background_color": "#0a0b10",
   "theme_color": "#0a0b10",

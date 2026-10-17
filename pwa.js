@@ -1,4 +1,5 @@
 (() => {
+  if (/^https?:$/.test(location.protocol)) document.title = 'GUgu Tv pro';
   const hint = document.getElementById('ios-install-hint');
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

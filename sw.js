@@ -1,8 +1,8 @@
-const CACHE_NAME = 'razvan-tv-shell-v2';
+const CACHE_NAME = 'razvan-tv-shell-v3';
 const APP_FILES = [
   './',
   './index.html',
-  './app.js',
+  './desktop.js',
   './channels.js',
   './ext.js',
   './epg.js',
